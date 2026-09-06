@@ -1,0 +1,6 @@
+name,url
+httpbin_get,https://httpbin.org/get
+httpbin_404,https://httpbin.org/status/404
+httpbin_500,https://httpbin.org/status/500
+github_user,https://api.github.com/users/yxf99
+broken_dns,https://httpbon.org/get
