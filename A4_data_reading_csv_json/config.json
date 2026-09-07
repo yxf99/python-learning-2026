@@ -1,0 +1,9 @@
+
+{
+  "uat": {
+    "base_url": "https://httpbin.org"
+  },
+  "prod": {
+    "base_url": "https://postman-echo.com"
+  }
+}
