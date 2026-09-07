@@ -1,0 +1,37 @@
+name: API Health Check
+
+on: #on: —— 什么时候跑。
+  workflow_dispatch:          # 允许手动点按钮触发
+  schedule:
+    - cron: '0 8 * * *'       # 每天 UTC 08:00（巴黎夏令时 10:00）0 8 * * * 读作「分 时 日 月 周」，即每天 8:00。注意 GitHub 用 UTC，不是你的本地时间。
+
+jobs:
+  check:
+    runs-on: ubuntu-latest #— GitHub 给你一台全新的临时 Linux 机器。跑完就销毁。每次都是干净的环境，这是 CI 的核心价值之一：能杜绝"在我机器上是好的"。
+    defaults:
+      run:
+        working-directory: A4_data_reading_csv_json #你的脚本用相对路径读 endpoints.csv，所以必须先 cd 进那个文件夹。
+
+    steps:
+      - uses: actions/checkout@v4 #把你的代码拉下来。这一步不写，机器上什么都没有。
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt #加包只改清单，CI 配置不用动， -r 就是 "read"，从文件读清单。 working-directory: . 是因为你在 yml 顶部设了默认目录是 A4_data_reading_csv_json，但 requirements.txt 在根目录，所以这一步要临时切回去。. 表示"当前目录"（就是根目录）。
+        working-directory: .
+
+      - name: 准备配置
+        run: cp config.example.json config.json #因为真实配置被 ignore 了，CI 上不存在，用模板顶上。
+
+      - name: 巡检 UAT
+        run: python read_csv.py uat
+
+      - name: 上传报告
+        if: always() #默认情况下，前面一步失败后面就不跑了。但报告恰恰在失败时最需要看，所以强制执行。
+        uses: actions/upload-artifact@v4 #把生成的报告存起来，运行结果页面上可以下载。这就是"归档"。
+        with:
+          name: health-report
+          path: A4_data_reading_csv_json/results_*
