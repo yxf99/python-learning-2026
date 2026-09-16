@@ -1,13 +1,17 @@
 import requests
 import time
 
-def call_api(url):
-    start = time.time() #time.time() —— 返回当前时间戳（秒，带小数）。前后各取一次相减，就是耗时。乘 1000 转毫秒，round() 去掉小数。
+def call_api(url, timeout=10, token=None): #token=None —— 默认不传就是不带认证。老的调用方式一行都不用改,这是向后兼容。
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}" #然后条件添加 —— 不需要认证时传一个空字典,requests 接受空 headers。别写成 headers=None if not token else {...},那样更难读。
+
+    start = time.time()
     try:
-        r = requests.get(url, timeout=10)
-        elapsed = round((time.time() - start) * 1000)   # 毫秒
+        r = requests.get(url, timeout=timeout, headers=headers)
+        elapsed = round((time.time() - start) * 1000)
         return {
-            "ok": r.status_code < 400, #r.status_code < 400 —— 这个表达式直接产出 True/False，不用写 if。2xx/3xx 算成功，4xx/5xx 算失败。
+            "ok": r.status_code < 400,
             "status_code": r.status_code,
             "elapsed_ms": elapsed,
             "error": None if r.status_code < 400 else f"HTTP {r.status_code}"

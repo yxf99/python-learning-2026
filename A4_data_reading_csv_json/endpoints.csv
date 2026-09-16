@@ -1,4 +1,5 @@
-name,path
-httpbin_get,/get
-httpbin_404,/status/404
-httpbin_500,/status/500
+name,path,auth
+get,/get,no
+status_404,/status/404,no
+status_500,/status/500,no
+bearer_ok,/bearer,yes

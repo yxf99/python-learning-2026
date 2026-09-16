@@ -1,9 +1,12 @@
-
 {
   "uat": {
-    "base_url": "https://httpbin.org"
+    "base_url": "https://httpbin.org",
+    "timeout": 10,
+    "token": "test-token-abc123"
   },
   "prod": {
-    "base_url": "https://postman-echo.com"
+    "base_url": "https://postman-echo.com",
+    "timeout": 5,
+    "token": "another-token"
   }
 }
