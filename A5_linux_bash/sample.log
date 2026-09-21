@@ -1,0 +1,13 @@
+2026-09-16 08:00:01 INFO  [health-check] Starting check for env=uat
+2026-09-16 08:00:02 INFO  [http] GET https://httpbin.org/get 200 397ms
+2026-09-16 08:00:03 ERROR [http] GET https://httpbin.org/status/404 404 389ms
+2026-09-16 08:00:04 ERROR [http] GET https://httpbin.org/status/500 500 412ms
+2026-09-16 08:00:05 INFO  [http] GET https://httpbin.org/bearer 200 386ms
+2026-09-16 08:00:06 WARN  [http] slow response: 2400ms threshold=1000ms
+2026-09-16 08:00:07 INFO  [health-check] Completed: 2 success, 2 failed
+2026-09-16 09:00:01 INFO  [health-check] Starting check for env=prod
+2026-09-16 09:00:02 INFO  [http] GET https://postman-echo.com/get 200 170ms
+2026-09-16 09:00:03 ERROR [http] GET https://postman-echo.com/bearer 404 144ms
+2026-09-16 09:00:04 ERROR [sap] Connection timeout after 30000ms
+2026-09-16 09:00:05 ERROR [sap] Retry 1 failed
+2026-09-16 09:00:06 INFO  [health-check] Completed: 1 success, 3 failed
