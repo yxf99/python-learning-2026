@@ -787,3 +787,15 @@ GET /checks/chk_xxx  → 过会儿来取结果
 13. 客户用 Azure APIM 做网关,契约用哪个?
 14. `allOf` 用来做什么?为什么输入模型和输出模型要分开?
 15. `nullable: true` 不写会有什么后果?
+
+## 📐 API Contract
+
+`B2_openapi/health-check-api.yaml` — 用 OpenAPI 3.0 为巡检工具设计的 API 契约。
+
+7 个端点,涵盖环境配置、巡检项管理、异步巡检执行与历史查询。
+
+设计要点:
+- `POST /checks` 返回 202 Accepted + check_id,异步获取结果
+- 历史查询使用 cursor 分页,避免 offset 在数据变动时的漂移
+- 输入模型与输出模型分离(`EndpointInput` / `Endpoint`,用 `allOf` 组合)
+- 全局 Bearer 认证声明
