@@ -114,3 +114,13 @@ CSV 是平的,装不下"这次运行的整体信息";JSON 可以。
 | A4 | CSV / JSON 读写、配置外置、Git 工程实践、CI/CD |
 
 A4 的详细笔记(含每一步的动机与踩过的坑)见 [`A4_data_reading_csv_json/NOTES.md`](A4_data_reading_csv_json/NOTES.md)。
+
+### 环境对比
+
+```bash
+python compare.py uat prod
+```
+
+并排输出两个环境的状态码,标出差异。存在差异时返回非零退出码,可用于 CI 门禁。
+
+用于排查"UAT 正常但 PROD 异常"这类配置漂移问题。

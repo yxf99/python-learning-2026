@@ -1,0 +1,294 @@
+openapi: 3.0.3
+
+info:
+  title: API Health check
+  version: 1.0.0
+  description: 配置驱动的 API 巡检服务,支持多环境与历史查询。
+
+servers:
+  - url: https://healthcheck.example.com/api/v1
+    description: Production
+  - url: http://localhost:8080/api/v1
+    description: Local
+
+tags:
+  - name: environments
+    description: 环境配置
+  - name: endpoints
+    description: 巡检项管理
+  - name: checks
+    description: 巡检执行与结果
+
+security:
+  - bearerAuth: []
+
+paths:
+  /environments:
+    get:
+      tags: [environments]
+      summary: 列出所有已配置的环境
+      operationId: listEnvironments
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Environment'
+  /endpoints:
+    get:
+      tags: [endpoints]
+      summary: 列出所有巡检项
+      operationId: listEndpoints
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Endpoint'
+    post:
+      tags: [endpoints]
+      summary: 新增一个巡检项
+      operationId: createEndpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EndpointInput'
+      responses:
+        '201':
+          description: 创建成功
+          headers:
+            Location:
+              description: 新资源的地址
+              schema:
+                type: string
+                example: /endpoints/bearer_ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Endpoint'
+        '409':
+          description: 同名巡检项已存在
+        '422':
+          description: 字段合法但业务规则不通过
+
+  /endpoints/{name}:
+    delete:
+      tags: [endpoints]
+      summary: 删除一个巡检项
+      operationId: deleteEndpoint
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: 巡检项名称
+          schema:
+            type: string
+          example: bearer_ok
+      responses:
+        '204':
+          description: 删除成功,无返回内容
+        '404':
+          description: 巡检项不存在
+
+  /checks:
+    post:
+      tags: [checks]
+      summary: 触发一次巡检
+      operationId: runCheck
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [env]
+              properties:
+                env:
+                  type: string
+                  example: uat
+      responses:
+        '202':
+          description: 已接受,巡检异步执行中
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  check_id:
+                    type: string
+                    example: chk_20260928_1030
+                  status:
+                    type: string
+                    enum: [queued, running, completed]
+                    example: queued
+        '404':
+          description: 环境不存在
+
+    get:
+      tags: [checks]
+      summary: 查询历史巡检
+      operationId: listChecks
+      parameters:
+        - name: env
+          in: query
+          required: false
+          description: 按环境筛选
+          schema:
+            type: string
+          example: uat
+        - name: limit
+          in: query
+          required: false
+          description: 每页条数
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: cursor
+          in: query
+          required: false
+          description: 分页游标,来自上一页的 next_cursor
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CheckReport'
+                  next_cursor:
+                    type: string
+                    nullable: true
+                    description: 为 null 表示没有下一页
+
+  /checks/{check_id}:
+    get:
+      tags: [checks]
+      summary: 查询某次巡检的结果
+      operationId: getCheck
+      parameters:
+        - name: check_id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: chk_20260928_1030
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckReport'
+        '404':
+          description: 巡检记录不存在
+
+components:
+  schemas:
+    Environment:
+      type: object
+      required: [name, base_url]
+      properties:
+        name:
+          type: string
+          example: uat
+        base_url:
+          type: string
+          format: uri
+          example: https://httpbin.org
+        timeout:
+          type: integer
+          description: 超时秒数
+          default: 10
+          example: 10
+
+    EndpointInput:
+      type: object
+      required: [name, path]
+      properties:
+        name:
+          type: string
+          example: bearer_ok
+        path:
+          type: string
+          example: /bearer
+        auth:
+          type: boolean
+          description: 调用时是否附带 Bearer token
+          default: false
+    Endpoint:
+      allOf:
+        - $ref: '#/components/schemas/EndpointInput'
+        - type: object
+          properties:
+            created_at:
+              type: string
+              format: date-time
+              example: '2026-09-28T10:30:00Z'
+    CheckResult:
+      type: object
+      properties:
+        name:
+          type: string
+          example: bearer_ok
+        url:
+          type: string
+          format: uri
+        ok:
+          type: boolean
+        status_code:
+          type: integer
+          nullable: true
+          example: 200
+        elapsed_ms:
+          type: integer
+          example: 386
+        error:
+          type: string
+          nullable: true
+          example: null
+
+    CheckReport:
+      type: object
+      properties:
+        check_id:
+          type: string
+          example: chk_20260928_1030
+        env:
+          type: string
+          example: uat
+        run_at:
+          type: string
+          format: date-time
+        total:
+          type: integer
+          example: 4
+        success:
+          type: integer
+          example: 2
+        failed:
+          type: integer
+          example: 2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckResult'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
