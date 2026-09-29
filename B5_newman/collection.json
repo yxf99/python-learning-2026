@@ -1,0 +1,83 @@
+{
+  "info": {
+    "name": "API Health Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get httpbin",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/get"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response under 2000ms', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});",
+              "",
+              "pm.test('Has url field', function () {",
+              "    pm.expect(pm.response.json()).to.have.property('url');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get 404",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/status/404"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 404', function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bearer with token",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/bearer",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Authenticated is true', function () {",
+              "    pm.expect(pm.response.json().authenticated).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

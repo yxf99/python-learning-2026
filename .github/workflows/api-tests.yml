@@ -1,0 +1,35 @@
+name: API Tests
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'B5_newman/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Run API tests
+        working-directory: B5_newman
+        run: |
+          newman run collection.json \
+            -e uat.postman_environment.json \
+            --reporters cli,junit \
+            --reporter-junit-export results.xml
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-results
+          path: B5_newman/results.xml
