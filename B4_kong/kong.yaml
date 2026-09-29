@@ -1,0 +1,21 @@
+_format_version: "3.0"
+
+services:
+  - name: httpbin-service
+    url: https://httpbin.org
+    routes:
+      - name: api-route
+        paths:
+          - /api
+        strip_path: true
+    plugins:
+      - name: key-auth
+      - name: rate-limiting
+        config:
+          minute: 10
+          policy: local
+
+consumers:
+  - username: eva
+    keyauth_credentials:
+      - key: my-secret-key-123
